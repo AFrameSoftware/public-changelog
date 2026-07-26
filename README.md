@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://www.aframesoftware.com">
-    <img src="https://www.aframesoftware.com/logo_aframe_bug.png" alt="AFrameSoftware" width="110" height="110">
+    <img src="https://www.aframesoftware.com/logo_aframe_bug.png" alt="AFrameSoftware" width="60" height="60">
   </a>
 </p>
 
