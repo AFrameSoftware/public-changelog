@@ -13,14 +13,14 @@
 <p align="center">
   <a href="https://www.aframesoftware.com"><strong>Website</strong></a>
   &nbsp;&middot;&nbsp;
-  <a href="https://api.aframeonline.com/api-pub/v1/swagger-ui.html"><strong>API Documentation</strong></a>
+  <a href="https://api.aframeonline.com/api-pub/api-docs"><strong>API Documentation</strong></a>
 </p>
 
 ---
 
 ## About
 
-This repository publishes the changelog for the [AFrame](https://www.aframesoftware.com) Public API (`/api-pub/v1`): [`api/changelog.md`](api/changelog.md). Every update is published as a **GitHub Release**, so you can subscribe by email or RSS and see new endpoints, breaking changes, and bug fixes the moment they're announced.
+This repository publishes the changelog for the AFrame Public API (`/api-pub/v1`): [`api/changelog.md`](api/changelog.md). Every update is published as a **GitHub Release**, so you can subscribe by email or RSS and see new endpoints, breaking changes, and bug fixes the moment they're announced.
 
 This repository contains documentation only - no application source code.
 
