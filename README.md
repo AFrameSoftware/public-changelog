@@ -14,8 +14,6 @@
   <a href="https://www.aframesoftware.com"><strong>Website</strong></a>
   &nbsp;&middot;&nbsp;
   <a href="https://api.aframeonline.com/api-pub/v1/swagger-ui.html"><strong>API Documentation</strong></a>
-  &nbsp;&middot;&nbsp;
-  <a href="https://support.aframesoftware.com"><strong>Support</strong></a>
 </p>
 
 ---
@@ -24,15 +22,15 @@
 
 This repository publishes the changelog for the [AFrame](https://www.aframesoftware.com) Public API (`/api-pub/v1`): [`api/changelog.md`](api/changelog.md). Every update is published as a **GitHub Release**, so you can subscribe by email or RSS and see new endpoints, breaking changes, and bug fixes the moment they're announced.
 
-This repository contains documentation only — no application source code.
+This repository contains documentation only - no application source code.
 
 ## How to Subscribe
 
-Each [Release](../../releases) contains the full text of the newest changelog entry — the notification itself tells you what changed.
+Each [Release](../../releases) contains the full text of the newest changelog entry.
 
 ### 📧 Email &nbsp;<sub>(free GitHub account required)</sub>
 
-**Watch** (top right) → **Custom** → check **Releases** → **Apply**. You'll only receive emails for changelog releases — nothing else.
+**Watch** (top right) → **Custom** → check **Releases** → **Apply**. You'll only receive emails for changelog releases.
 
 ### 📡 RSS / Atom &nbsp;<sub>(no GitHub account required)</sub>
 
