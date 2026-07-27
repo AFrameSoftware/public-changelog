@@ -28,11 +28,11 @@ This repository contains documentation only - no application source code.
 
 Each [Release](../../releases) contains the full text of the newest changelog entry.
 
-### 📧 Email &nbsp;<sub>(free GitHub account required)</sub>
+### Email &nbsp;<sub>(free GitHub account required)</sub>
 
 **Watch** (top right) → **Custom** → check **Releases** → **Apply**. You'll only receive emails for changelog releases.
 
-### 📡 RSS / Atom &nbsp;<sub>(no GitHub account required)</sub>
+### RSS / Atom &nbsp;<sub>(no GitHub account required)</sub>
 
 Add the releases feed to any feed reader:
 
