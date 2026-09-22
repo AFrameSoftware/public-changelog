@@ -6,6 +6,65 @@ To be notified when this changelog is updated, [subscribe to changelog updates](
 
 ---
 
+## 2026-09-21
+
+This release exposes an Event's **date formula** (auto-adjusting start date) on the Transaction Events endpoints, and adds a list endpoint for the Team's **Date Calculators** so their ids can be discovered. No existing fields or behaviors are removed; the Events list continues to return `APIEventDto`, which simply gains the fields below.
+
+### <span style="color: green;">New Endpoints</span>
+
+#### `GET /date-adjustment-rules` — List Date Calculators
+
+Returns every Date Calculator (internally `DateAdjustmentRules`) defined for the Team, ordered by sort then name. A Date Calculator decides how days are counted when a date formula adds `dateAdjustDelta` days to its reference date.
+
+**Payload:** `APIDateAdjustmentRulesDigestDto[]`
+- `dateAdjustmentRulesId` *(integer)* — use as `dateAdjustmentRulesId` on Events
+- `name` *(string)*, `description` *(string)*, `sort` *(integer)*
+- `systemRule` *(boolean)* — system-provided calculators cannot be edited by the Team
+- `countBy` *(enum)* — `CALENDAR_DAYS`, `BUSINESS_DAYS`, `CALENDAR_END_ON_BUSINESS_PREVIOUS`, `CALENDAR_END_ON_BUSINESS_NEXT`, `BUSINESS_DAYS_SATURDAY`, `BUS_5DAYS_CONVERT_TO_CAL_EOB_NEXT`
+
+### <span style="color: green;">New Fields</span>
+
+#### Event date formula on `GET`, `POST`, `PATCH /xactions/{xactionId}/events[/{eventId}]`
+
+`APIEventDto` (returned by list, read, create, and patch) now includes:
+- `dateAdjustActive` *(boolean)* — when true, `startDate` is computed by the server and kept in sync with the reference date
+- `dateAdjustType` *(enum)* — `XACTION_LIST_DATE`, `XACTION_ON_MARKET_DATE`, `XACTION_EXPIRE_DATE`, `XACTION_EFFECTIVE_DATE`, or `EVENT_MERGE_FIELD_CODE` (another Event). Legacy rows may report `TEMPLATE_START_DATE`.
+- `dateAdjustMergeFieldCode` *(string)* — the referenced Event's `mergeFieldCode`; only set for `EVENT_MERGE_FIELD_CODE`
+- `dateAdjustReferenceCode` *(string)* — the reference in the write form below
+- `dateAdjustDelta` *(integer)* — days added to the reference date (negative = before); `null` means the formula is incomplete
+- `dateAdjustmentRules` *(APIDateAdjustmentRulesDigestDto)* — the Date Calculator (same shape as `GET /date-adjustment-rules`), or `null` for calendar days
+
+`APIEventCreateDto` and `APIEventPatchDto` now accept:
+- `dateAdjustActive` *(boolean)*
+- `dateAdjustReferenceCode` *(string, max 100)* — one of the Transaction dates `sys_XACTION_LIST_DATE`, `sys_XACTION_ON_MARKET_DATE`, `sys_XACTION_EXPIRE_DATE`, `sys_XACTION_EFFECTIVE_DATE`, **or** the `mergeFieldCode` of another Event on the same Transaction (e.g. `d_ClosingDate`; case-sensitive)
+- `dateAdjustDelta` *(integer)*
+- `dateAdjustmentRulesId` *(integer)* — from `GET /date-adjustment-rules`; `null` counts calendar days
+
+```
+PATCH /xactions/123/events/456
+Content-Type: application/json-patch+json
+
+[
+  {"op": "replace", "path": "/dateAdjustActive", "value": true},
+  {"op": "replace", "path": "/dateAdjustReferenceCode", "value": "sys_XACTION_EFFECTIVE_DATE"},
+  {"op": "replace", "path": "/dateAdjustDelta", "value": 10},
+  {"op": "replace", "path": "/dateAdjustmentRulesId", "value": 12}
+]
+```
+
+**Rules**
+- When `dateAdjustActive` is true, `dateAdjustReferenceCode` is required, and any `startDate` you send is replaced by the computed date once the reference date is known. Patch `startDate` directly only on Events whose formula is off.
+- If no non-omitted Event on the Transaction has the referenced `mergeFieldCode` yet, or `dateAdjustDelta` is `null`, `startDate` is left `null` until the formula can be evaluated.
+- **`422 Unprocessable Content`**: unknown `sys_` reference type (e.g. `sys_PARENT_TASK`), a reference equal to the Event's own `mergeFieldCode`, or a `dateAdjustmentRulesId` that does not exist on the Team.
+
+> **Note:** the 2026-07-18 entry stated that patching a date-adjust field returns `400`. That restriction is lifted; the four fields above are now patchable. Patching `omitted` still returns `400`.
+
+### <span style="color: orange;">Bug Fixes</span>
+
+- `PATCH /xactions/{xactionId}/events/{eventId}` validation failures (`422`) now include the field-level `validationErrors` messages in the error envelope; previously the messages were omitted.
+
+---
+
 ## 2026-07-26
 
 This release adds two new template-apply endpoints for Transactions: apply EventTemplates (Date Templates) and apply AttachmentTemplates — plus list endpoints for EventTemplates and AttachmentTemplates so their ids can be discovered. They complement the existing `POST /xactions/{xactionId}/apply-task-templates` and `GET /task-templates` endpoints, which are unchanged.
