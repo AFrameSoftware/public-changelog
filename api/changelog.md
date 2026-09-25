@@ -6,6 +6,33 @@ To be notified when this changelog is updated, [subscribe to changelog updates](
 
 ---
 
+## 2026-09-23
+
+This release tightens the status-dependent validation of a Transaction so the same rules apply on every write path. Three checks that previously came back as warnings (the request still succeeded) now reject the request, and one requirement is dropped.
+
+### <span style="color: red;">Breaking Changes</span>
+
+#### Status-dependent field rules on `POST /xactions` and `PATCH /xactions/{xactionId}`
+
+The request is now rejected with the standard validation error response when the Transaction's status (after the write) lands in a stage whose rules are not met:
+
+| Status stage | Required | Must be empty |
+|---|---|---|
+| `ACTIVE`, side `SELLER` or `DUAL` | `listPrice`, `listDate` | `closedDate` |
+| `ACTIVE`, side `BUYER` | – | `closedDate` |
+| `PRE_ACTIVE` | – | `closedDate` |
+| `UNDER_CONTRACT` | `contractPrice`, `effectiveDate` | `closedDate` |
+| `SOLD` | `contractPrice`, `closedDate` | – |
+| `NOT_SOLD` | `closedDate` | – |
+| `NOT_ACTIVE` | – | – |
+
+Newly enforced (previously warnings): `contractPrice` on `UNDER_CONTRACT`/`SOLD`, `effectiveDate` on `UNDER_CONTRACT`, and a non-null `closedDate` on `PRE_ACTIVE`/`ACTIVE`/`UNDER_CONTRACT`. `closedDate` is now required on `NOT_SOLD` (a Transaction that fell apart is closed as of that date). When changing `xactionStatusId`, send the fields the new stage needs in the same request (a `PATCH` may set several paths at once).
+
+### <span style="color: green;">Relaxed</span>
+
+- `payoutActual` is no longer required when a Transaction is `SOLD`.
+- `closedDate` is no longer required when a Transaction is `NOT_ACTIVE`.
+
 ## 2026-09-21
 
 This release exposes an Event's **date formula** (auto-adjusting start date) on the Transaction Events endpoints, and adds a list endpoint for the Team's **Date Calculators** so their ids can be discovered. No existing fields or behaviors are removed; the Events list continues to return `APIEventDto`, which simply gains the fields below.
