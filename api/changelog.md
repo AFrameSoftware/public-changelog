@@ -6,6 +6,116 @@ To be notified when this changelog is updated, [subscribe to changelog updates](
 
 ---
 
+## 2026-09-26
+
+This release adds read endpoints for the entries of Event, Task and Attachment Templates, so integrations can inspect which Events, Tasks and Attachment placeholders (and which date formulas) applying a template will create. It also brings Task responses in line with Event responses: the Date Calculator is now a nested object instead of a flat id + name pair. Participant Templates, which add a consistent set of Roles and Contacts to a Transaction, are now readable as well.
+
+### <span style="color: green;">New Endpoints (Participant Templates)</span>
+
+#### `GET /participant-templates` — List Participant Templates
+
+Returns every ParticipantTemplate defined for the Team, ordered by Folder (the "[No Folder]" bucket first) then by each template's sort and name.
+
+**Payload:** `ParticipantTemplateDto[]`
+- `participantTemplateId` *(integer)*, `teamId` *(integer)*, `name` *(string)*, `description` *(string)*, `sort` *(integer)*
+- `folder` *(FolderDto)* — the containing Folder, or `null` when the template is not in a Folder
+
+#### `GET /participant-templates/{participantTemplateId}/participant-template-entries` — List Participant Template Entries
+
+Returns every entry of the specified Participant Template, ordered by sort. The Participant Template must belong to the Team; otherwise the request returns `404`.
+
+**Payload:** `APIParticipantTemplateEntryDto[]`
+- `participantTemplateEntryId` *(integer)*, `participantTemplateId` *(integer)*
+- `xactionParticipantRole` *(APIXactionParticipantRoleDto)* — the Transaction Participant Role the entry fills when applied (same shape as `GET /xaction-participant-roles`)
+- `contact` *(APIContactDigestDto)* — the Contact who fills the Role when applied, or `null` when the entry applies as a placeholder
+- `placeholder` *(boolean)* — true when the entry has no Contact, so applying it creates an empty Role placeholder
+- `sort` *(integer)*
+- `templateEntryApplySettings` *(object)* — `xactionSideBuyer`, `xactionSideSeller`, `xactionSideDual` *(boolean)*: which Transaction sides the entry applies to
+
+#### `GET /folders/participant-templates` — Participant Template Folders
+
+Returns the Participant Template Folders for the Team, in the same `FolderListDto` envelope as the other Template Folder endpoints.
+
+### <span style="color: red;">Breaking Changes</span>
+
+#### Date Calculator nested on `APITaskDto` (responses)
+
+- `dueDateAdjustmentRulesId` *(integer)*, `dueDateAdjustmentRulesName` *(string)* → **`dueDateAdjustmentRules`** *(DateAdjustmentRulesDigestDto)* — the Date Calculator (same shape as `GET /date-adjustment-rules`), or `null` for calendar days
+
+Affects every endpoint that returns `APITaskDto`:
+
+- `GET /tasks/{taskId}`
+- `POST /tasks` (response payload)
+
+**Action required:** Clients reading `dueDateAdjustmentRulesId` or `dueDateAdjustmentRulesName` from a Task response must switch to `dueDateAdjustmentRules.dateAdjustmentRulesId` and `dueDateAdjustmentRules.name`, and treat a `null` `dueDateAdjustmentRules` as calendar days. `APITaskCreateDto` and `APITaskPatchDto` still take the flat `dueDateAdjustmentRulesId`. This matches how `APIEventDto.dateAdjustmentRules` has worked since 2026-09-21.
+
+### <span style="color: blue;">Non-Breaking Changes</span>
+
+#### Schema rename `APIDateAdjustmentRulesDigestDto` → `DateAdjustmentRulesDigestDto`
+
+The OpenAPI schema for the Date Calculator is now named `DateAdjustmentRulesDigestDto`. It is used by `GET /date-adjustment-rules`, `APIEventDto.dateAdjustmentRules`, `APITaskDto.dueDateAdjustmentRules`, `EventTemplateEntryDto.dateAdjustmentRules`, and `TaskTemplateEntryDto.dueDateAdjustmentRules`. The JSON is unchanged; only generated client type names are affected.
+
+### <span style="color: green;">New Endpoints</span>
+
+#### `GET /event-templates/{eventTemplateId}/event-template-entries` — List Event Template Entries
+
+Returns every entry of the specified Event Template, ordered by title. The Event Template must belong to the Team; otherwise the request returns `404`.
+
+**Payload:** `EventTemplateEntryDto[]`
+- `eventTemplateEntryId` *(integer)*, `eventTemplateId` *(integer)*
+- `title` *(string)*, `location` *(string)*, `description` *(string)*, `folderName` *(string)* — the Event Folder the created Event is placed in, or `null`
+- `color` *(enum)* — `NONE`, `RED`, `TANGERINE`, `TAUPE`, `YELLOW`, `LIME`, `GREEN`, `CYAN`, `TEAL`, `COBALT`, `PURPLE`, `MAGENTA`
+- `allDayEvent` *(boolean)*, `startTimeMinutes` *(integer)*, `durationMinutes` *(integer)* — minutes after midnight and duration; ignored when `allDayEvent` is true
+- `reminderSet` *(boolean)*, `reminderMinutes` *(integer)*
+- `mergeFieldCode` *(string)* — the code assigned to the created Event; other entries reference it via `dateAdjustMergeFieldCode`
+- `dateAdjustActive` *(boolean)*, `dateAdjustType` *(enum)*, `dateAdjustMergeFieldCode` *(string)*, `dateAdjustDelta` *(integer)* — the date formula, with the same semantics as on `APIEventDto`
+- `dateAdjustmentRules` *(DateAdjustmentRulesDigestDto)* — the Date Calculator (same shape as `GET /date-adjustment-rules`), or `null` for calendar days
+- `agentVisible` *(boolean)*, `buyerSellerVisible` *(boolean)* — portal visibility of the created Event
+- `sort` *(integer)*
+- `templateEntryApplySettings` *(object)* — `xactionSideBuyer`, `xactionSideSeller`, `xactionSideDual` *(boolean)*: which Transaction sides the entry applies to
+
+#### `GET /task-templates/{taskTemplateId}/task-template-entries` — List Task Template Entries
+
+Returns every entry of the specified Task Template, ordered by sort then subject. The Task Template must belong to the Team; otherwise the request returns `404`.
+
+**Payload:** `TaskTemplateEntryDto[]`
+- `taskTemplateEntryId` *(integer)*, `taskTemplateId` *(integer)*, `taskTemplateName` *(string)*
+- `subject` *(string)*, `note` *(string)*
+- `taskType` *(enum)* — `TODO`, `PHONE`, `LETTER`, `EMAIL`
+- `color` *(enum)* — `NONE`, `RED`, `TANGERINE`, `TAUPE`, `YELLOW`, `LIME`, `GREEN`, `CYAN`, `TEAL`, `COBALT`, `PURPLE`, `MAGENTA`
+- `autoFillWithAppUserId` *(integer)*, `autoFillWithRole` *(enum: `USER`, `PRIMARY`, `CO_AGENT`, `ASSISTANT1`, `ASSISTANT2`)* — who the created Task is assigned to; at most one is set
+- `recurring` *(boolean)*, `recurringFrequency` *(enum: `DAILY`, `WEEKLY`, `MONTHLY`, `YEARLY`)*, `recurringSeparationCount` *(integer)*, `recurringCount` *(integer)*, `recurringDayOfWeek` *(enum)*, `recurringDayOfMonth` *(integer)*, `recurringMonthOfYear` *(enum)* — recurrence, with the same semantics as on `APITaskDto`
+- `dueDateAdjustActive` *(boolean)*, `dueDateAdjustType` *(enum)*, `dueDateAdjustRefMergeFieldCode` *(string)*, `dueDateAdjustDelta` *(integer)* — the due-date formula, with the same semantics as on `APITaskDto`
+- `dueDateAdjustRefTaskIdParent` *(integer)*, `dueDateAdjustRefTaskParentSubject` *(string)*, `dueDateAdjustRefTaskParentContingent` *(boolean)* — the sibling entry the due date chains from when `dueDateAdjustType` is `PARENT_TASK`
+- `dateAdjustReferenceCode` *(string)* — convenience code for the formula's reference: `sys_` + `dueDateAdjustType` for system references, otherwise the referenced Merge Field Code
+- `dueDateAdjustmentRules` *(DateAdjustmentRulesDigestDto)* — the Date Calculator (same shape as `GET /date-adjustment-rules`), or `null` for calendar days
+- `dueTimeMinutes` *(integer)*, `dueTime` *(string, `HH:mm`)* — the due time in two forms; both `null` when no due time is set
+- `agentVisible` *(boolean)*, `buyerSellerVisible` *(boolean)* — portal visibility of the created Task
+- `prospecting` *(boolean)*, `onCalendar` *(boolean)*, `milestone` *(boolean)*
+- `reminderSet` *(boolean)*, `reminderDelta` *(integer)*, `reminderTimeMinutes` *(integer)* — days before the due date and minutes after midnight the reminder fires
+- `expense` *(number)*
+- `sort` *(integer)*
+- `templateEntryApplySettings` *(object)* — `xactionSideBuyer`, `xactionSideSeller`, `xactionSideDual` *(boolean)*: which Transaction sides the entry applies to
+
+#### `GET /attachment-templates/{attachmentTemplateId}/attachment-template-entries` — List Attachment Template Entries
+
+Returns every entry of the specified Attachment Template, ordered by sort then title. The Attachment Template must belong to the Team; otherwise the request returns `404`.
+
+**Payload:** `AttachmentTemplateEntryDto[]`
+- `attachmentTemplateEntryId` *(integer)*, `attachmentTemplateId` *(integer)*
+- `attachmentType` *(enum)* — `FILE`, `URL`
+- `title` *(string)*, `description` *(string)*, `webLink` *(string)* — `webLink` is only set when `attachmentType` is `URL`
+- `color` *(enum)* — `NONE`, `RED`, `TANGERINE`, `TAUPE`, `YELLOW`, `LIME`, `GREEN`, `CYAN`, `TEAL`, `COBALT`, `PURPLE`, `MAGENTA`
+- `required` *(boolean)*
+- `folderName` *(string)* — the Attachment Folder the created Attachment is placed in, or `null`
+- `mergeFieldCode` *(string)* — the code assigned to the created Attachment
+- `signatureTrackingEnabled` *(boolean)*, `signatureStateSeller`, `signatureStateBuyer`, `signatureStateSellerAgent`, `signatureStateBuyerAgent` *(enum: `NOT_NEEDED`, `NOT_SATISFIED`, `SATISFIED`)*
+- `agentVisible` *(boolean)*, `buyerSellerVisible` *(boolean)* — portal visibility of the created Attachment
+- `sort` *(integer)*
+- `templateEntryApplySettings` *(object)* — `xactionSideBuyer`, `xactionSideSeller`, `xactionSideDual` *(boolean)*: which Transaction sides the entry applies to
+
+---
+
 ## 2026-09-23
 
 This release tightens the status-dependent validation of a Transaction so the same rules apply on every write path. Three checks that previously came back as warnings (the request still succeeded) now reject the request, and one requirement is dropped.
