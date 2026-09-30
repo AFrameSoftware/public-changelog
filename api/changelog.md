@@ -6,6 +6,28 @@ To be notified when this changelog is updated, [subscribe to changelog updates](
 
 ---
 
+## 2026-09-30
+
+Transactions can now receive email at their own address. Received emails appear in email responses with `emailTransportDirection` `RECEIVE` and `emailQueueState` `RECEIVED`.
+
+### <span style="color: red;">Breaking Changes</span>
+
+#### `APIEmailQueueDto.scheduledSendDateTime` can be `null`
+
+- `scheduledSendDateTime` *(date-time)* — now `null` for received (`RECEIVE`) emails, which are never scheduled to send. Sent emails always have a value, as before.
+
+Affects `GET /xactions/{xactionId}/email-queues`.
+
+**Action required:** Clients that read `scheduledSendDateTime` without a null check must handle `null`, or skip emails whose `emailTransportDirection` is `RECEIVE`.
+
+### <span style="color: blue;">Non-Breaking Changes</span>
+
+#### `APIEmailQueueDto.emailFrom` maximum length raised to 255
+
+- `emailFrom` *(string)* — maximum length is now 255 (was 100). The From header of a received email can carry a long display name.
+
+---
+
 ## 2026-09-26
 
 This release adds read endpoints for the entries of Event, Task and Attachment Templates, so integrations can inspect which Events, Tasks and Attachment placeholders (and which date formulas) applying a template will create. It also brings Task responses in line with Event responses: the Date Calculator is now a nested object instead of a flat id + name pair. Participant Templates, which add a consistent set of Roles and Contacts to a Transaction, are now readable as well.
