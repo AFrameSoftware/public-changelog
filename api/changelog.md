@@ -6,6 +6,36 @@ To be notified when this changelog is updated, [subscribe to changelog updates](
 
 ---
 
+## 2026-10-01
+
+A Field can now be shown in more than one Field Group. It still has one value per Transaction, so the value is the same in every Field Group it appears in. Contact and Transaction notes can now @mention team members.
+
+### <span style="color: red;">Breaking Changes</span>
+
+#### A Field can appear in more than one Field Group in tree responses
+
+- In `GET /fields/tree` and `GET /xactions/{xactionId}/field-tree`, the same `fieldId` can now be listed under several Field Groups, each with the same value.
+- `FieldDto.fieldGroupId` is still the Field's primary Field Group, so it can differ from the Field Group the entry is listed under.
+- Likewise, `FieldDto.sort` is the Field's sort within its primary Field Group. Entries are returned in display order, so use their position in the list to order Fields within a Field Group.
+
+`GET /fields` is unchanged; it still lists each Field once.
+
+**Action required:** Clients that flatten the tree into a map or list keyed by `fieldId` must allow duplicates, or keep only the entry where `field.fieldGroupId` matches the enclosing Field Group's `fieldGroupId`.
+
+### <span style="color: blue;">Non-Breaking Changes</span>
+
+#### @mentions in notes
+
+- A `note` sent to `POST /contact-notes`, `PATCH /contact-notes/{contactNoteId}`, `POST /xaction-activities` or `PATCH /xaction-activities/{xactionActivityId}` can mention a team member with `<span data-mention-app-user-id="{appUserId}">@Name</span>`. The `data-mention-app-user-id` attribute is now kept when the note is saved (it was previously removed).
+- Each newly mentioned AppUser on your Team who can see the Contact or Transaction receives an email and an in-app notification, credited to the authenticated AppUser. Saving the note again does not notify the same AppUser twice.
+- Notes returned by the API may contain these `<span>` tokens, including notes written in the AFrame app.
+
+#### Zapier notes never notify
+
+- In `POST /integrations/zapier/contacts` and `POST /integrations/zapier/xactions`, mention tokens in `note` are converted to plain `@Name` text, so no one is notified. Zapier notes often carry text from public forms.
+
+---
+
 ## 2026-09-30
 
 Transactions can now receive email at their own address. Received emails appear in email responses with `emailTransportDirection` `RECEIVE` and `emailQueueState` `RECEIVED`.
