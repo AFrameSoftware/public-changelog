@@ -6,6 +6,19 @@ To be notified when this changelog is updated, [subscribe to changelog updates](
 
 ---
 
+## 2026-10-05
+
+Uploading a file to a Transaction Attachment placeholder now follows the same completion rule as assigning a file to one.
+
+### <span style="color: blue;">Non-Breaking Changes</span>
+
+#### Uploads leave a placeholder that still needs signatures incomplete
+
+- `PATCH /xaction-attachments/{xactionAttachmentId}/file` with `completeMode` `DEFAULT` (or omitted) marks `completed = true` only when no further signatures are needed, matching `PATCH /xaction-attachments/{xactionAttachmentId}/file/assign`. When signature tracking is on and a signature is still not satisfied, `completed` is left as it was.
+- `COMPLETE`, `INCOMPLETE` and `UNCHANGED` behave as before.
+
+---
+
 ## 2026-10-01
 
 A Field can now be shown in more than one Field Group. It still has one value per Transaction, so the value is the same in every Field Group it appears in. Contact and Transaction notes can now @mention team members.
