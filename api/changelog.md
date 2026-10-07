@@ -6,6 +6,20 @@ To be notified when this changelog is updated, [subscribe to changelog updates](
 
 ---
 
+## 2026-10-06
+
+Six colors have been added to the color palette.
+
+### <span style="color: blue;">Non-Breaking Changes</span>
+
+#### New `color` values
+
+- `color` now also accepts and returns `MAROON`, `AMBER`, `SKY`, `VIOLET`, `PINK` and `GRAPHITE`. Existing values are unchanged.
+- The full list is now `NONE`, `RED`, `MAROON`, `TANGERINE`, `AMBER`, `YELLOW`, `LIME`, `GREEN`, `TEAL`, `CYAN`, `SKY`, `COBALT`, `VIOLET`, `PURPLE`, `MAGENTA`, `PINK`, `TAUPE`, `GRAPHITE`.
+- Applies to Tasks, Events, Transaction Attachments, Transaction Fields, Field choices, and Task, Event and Attachment Template Entries. Clients that reject unknown enum values should be updated to accept the new ones.
+
+---
+
 ## 2026-10-05
 
 Uploading a file to a Transaction Attachment placeholder now follows the same completion rule as assigning a file to one.
