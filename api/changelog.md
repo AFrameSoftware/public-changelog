@@ -6,6 +6,20 @@ To be notified when this changelog is updated, [subscribe to changelog updates](
 
 ---
 
+## 2026-10-08
+
+Transaction Events (dates) can now be searched across the whole Team.
+
+### <span style="color: blue;">Non-Breaking Changes</span>
+
+#### New `POST /events/search`
+
+- Returns a paged list of Event digests (`APIEventPagedResultDto`). Each item includes the Event's Transaction (brief), Folder, dates, completion, whether a reminder is set, and date formula state.
+- `eventSearchCriteriaDto` is required (may be `{}`); its filters are optional and combined with AND: `xactionId`, `xactionStatusIds`, `xactionStages`, `mergeFieldCode` (exact match), `startDate` (`from`/`to`, inclusive) and `completed`.
+- `page` (0-based) and `pageSize` (1–100) are required. Results are ordered by `startDate` (Events without a start date last), then `eventId`.
+
+---
+
 ## 2026-10-06
 
 Six colors have been added to the color palette.
