@@ -6,6 +6,20 @@ To be notified when this changelog is updated, [subscribe to changelog updates](
 
 ---
 
+## 2026-10-11
+
+Task `subject` and `note` limits are now enforced as validation errors.
+
+### <span style="color: red;">Breaking Changes</span>
+
+#### Task `subject` is required on every create and update
+
+- `POST /tasks` and `PATCH /tasks/{taskId}` now return `422` when `subject` is blank (empty or only spaces) or longer than 255 characters. Blank subjects were previously accepted.
+- `note` longer than 65,535 characters also returns `422`.
+- Before this change, a missing or oversized value failed when saving instead of returning a validation error.
+
+---
+
 ## 2026-10-08
 
 Transaction Events (dates) can now be searched across the whole Team.
