@@ -6,6 +6,47 @@ To be notified when this changelog is updated, [subscribe to changelog updates](
 
 ---
 
+## 2026-10-14
+
+File uploads are now limited to a list of accepted file types, and Transaction agent and TC/Assistant assignments follow one set of rules on create and update.
+
+### Changes
+
+#### Any user may assign teammates to a Transaction
+
+- `PATCH /xactions/{xactionId}` no longer requires edit access to the Team Member being assigned to `appUserIdPrimaryAgent`, `appUserIdCoAgent`, `appUserIdAssistantTC1` or `appUserIdAssistantTC2`. Any Team Member with the right role may be assigned (see Breaking Changes).
+
+#### Isolation-mode users may change agent assignments
+
+- `PATCH /xactions/{xactionId}` now lets users in isolation mode change the four agent and TC/Assistant fields. Previously any change to these fields returned `403 Forbidden` for them.
+- On `PATCH /xactions/{xactionId}` they may assign themselves, Managed Agents they own, or anyone already assigned to the Transaction. Assigning anyone else returns `422 Unprocessable Content`.
+- They must stay on the Transaction in at least one of the four fields, on both `PATCH /xactions/{xactionId}` and `POST /xactions`. A request that would leave them in none of them returns `422`.
+
+### <span style="color: red;">Breaking Changes</span>
+
+#### Agent and TC/Assistant assignments are validated the same way on create and update
+
+These rules apply to `appUserIdPrimaryAgent`, `appUserIdCoAgent`, `appUserIdAssistantTC1` and `appUserIdAssistantTC2` on `POST /xactions` and `PATCH /xactions/{xactionId}`:
+
+- `appUserIdPrimaryAgent` and `appUserIdCoAgent` require the Agent role; `appUserIdAssistantTC1` and `appUserIdAssistantTC2` require the TC/Assistant role. Any other Team Member returns `422`.
+- The Team Member must be active. An inactive Team Member now returns `422`; before, inactive Team Members were accepted.
+- The same Team Member may not be both `appUserIdPrimaryAgent` and `appUserIdCoAgent`, or both `appUserIdAssistantTC1` and `appUserIdAssistantTC2` (`422`).
+- When `appUserIdPrimaryAgent` is omitted or set to the requesting user on `POST /xactions`, the requesting user is used without the role or active requirement.
+- On `POST /xactions`, users in isolation mode may assign only themselves and Managed Agents they own. Assigning anyone else now returns `422`; before, any Team Member was accepted.
+- On `PATCH /xactions/{xactionId}`, an ID that does not match a Team Member now returns `422` instead of `404 Not Found`.
+- On `POST /xactions`, an unknown `appUserIdCoAgent`, `appUserIdAssistantTC1` or `appUserIdAssistantTC2` now returns `422`. Before, it was dropped with a warning and the Transaction was still created.
+- Each problem is reported as a validation error on the field it applies to, so one response lists all of them.
+
+#### Uploaded files must use an accepted extension
+
+- `POST /xaction-attachments/file` and `PATCH /xaction-attachments/{xactionAttachmentId}/file` now return `422` unless the file's extension is on the accepted list (case-insensitive).
+- Files attached by URL when creating a Transaction through Zapier follow the same list. A file with any other extension is skipped with a warning, and the Transaction is still created.
+- Before this change, any extension was accepted except a blocked list of executable and script types.
+- Accepted extensions: `txt`, `rtf`, `pdf`, `doc`, `docx`, `docm`, `dotx`, `xls`, `xlsx`, `xlsm`, `xlsb`, `xltx`, `ppt`, `pptx`, `pptm`, `ppsx`, `potx`, `odt`, `ods`, `odp`, `odg`, `pages`, `numbers`, `key`, `csv`, `tsv`, `md`, `log`, `xps`, `oxps`, `epub`, `vsd`, `vsdx`, `dwg`, `dxf`, `psd`, `ai`, `eps`, `msg`, `eml`, `ics`, `vcf`, `jpg`, `jpeg`, `jfif`, `png`, `gif`, `bmp`, `tiff`, `tif`, `heic`, `heif`, `webp`, `avif`, `mp3`, `wav`, `m4a`, `aac`, `ogg`, `wma`, `flac`, `mp4`, `m4v`, `mov`, `avi`, `mkv`, `webm`, `wmv`, `mpeg`, `mpg`, `3gp`, `zip`, `tar`, `gz`, `rar`, `7z`, `xml`, `json`, `yaml`, `yml`, `css`.
+- Files uploaded before this change keep working: they can still be downloaded and renamed.
+
+---
+
 ## 2026-10-11
 
 Task `subject` and `note` limits are now enforced as validation errors.
