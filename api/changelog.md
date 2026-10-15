@@ -6,6 +6,21 @@ To be notified when this changelog is updated, [subscribe to changelog updates](
 
 ---
 
+## 2026-10-15
+
+New Tasks, Events, Activities and Attachments on a Transaction now use the Team's default portal visibility when the request leaves it out.
+
+### <span style="color: red;">Breaking Changes</span>
+
+#### Omitted portal visibility uses the Team default
+
+- On `POST /tasks`, `POST /xactions/{xactionId}/events`, `POST /xaction-activities`, `POST /xaction-attachments` and `POST /xaction-attachments/file`, `agentVisible` and `buyerSellerVisible` are now optional.
+- An omitted value now takes the Team's Default Visibility setting for that kind of item. Before, it was treated as `false`, so the item was hidden from that portal.
+- A Task that is not on a Transaction still defaults to `false`.
+- Values sent in the request are used as before. To keep an item hidden regardless of the Team setting, send `false`.
+
+---
+
 ## 2026-10-14
 
 File uploads are now limited to a list of accepted file types, and Transaction agent and TC/Assistant assignments follow one set of rules on create and update.
