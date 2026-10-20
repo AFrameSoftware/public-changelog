@@ -48,7 +48,7 @@ https://github.com/AFrameSoftware/public-changelog/releases.atom
 
 ## AFrame MCP Server
 
-The [Model Context Protocol](https://modelcontextprotocol.io) (MCP) is an open standard for connecting AI assistants to outside tools and data. The AFrame MCP server lets an assistant search and read your transactions, contacts, tasks, dates, notes, emails and files, search the AFrame help center, and, with a Read & Write API key, create and update records for you.
+The [Model Context Protocol](https://modelcontextprotocol.io) (MCP) is an open standard for connecting AI assistants to outside tools and data. The AFrame MCP server lets an assistant search and read your transactions, contacts, tasks, dates, notes, emails and files, search the AFrame help center, and, depending on the API key, create, update and delete records for you.
 
 | | |
 |---|---|
@@ -65,10 +65,11 @@ The key's scope decides which tools the assistant gets:
 
 | Scope | What the assistant can do |
 |---|---|
-| **Read Only** | Search and read records and help articles. Tools that change data are hidden. |
-| **Read & Write** or **Full Access** | Everything above, plus create and update records one at a time. |
+| **Read Only** | Search and read records, files and help articles. Tools that change data are hidden. |
+| **Read & Write** | Everything above, plus create and update records one at a time, add Managed Agents to the team, and apply task, date and document templates to a transaction. |
+| **Full Access** | Everything above, plus delete contact notes, dates, participants and document files. The assistant confirms each deletion with you first. |
 
-Start with a **Read Only** key unless you want the assistant to make changes. Treat the key like a password: anyone who has it can act as you in AFrame.
+Start with a **Read Only** key unless you want the assistant to make changes, and only use **Full Access** if you want it to delete. Treat the key like a password: anyone who has it can act as you in AFrame.
 
 ### 2. Connect your AI client
 
@@ -161,44 +162,14 @@ Ask the assistant *"Who am I in AFrame?"*. It calls `whoami` and answers with yo
 
 ### Tools
 
-#### Available with every key
+The full list of tools, with what each one does, its arguments and the API key scope it needs, is generated from the code in the [MCP Tools view of the API docs](https://api.aframeonline.com/api-pub/swagger-ui/index.html?urls.primaryName=MCP%20Tools). Your assistant also lists the tools your key can use as soon as it connects.
 
-| Area | Tools |
-|---|---|
-| Transactions | `search_xactions`, `get_xaction`, `get_xaction_fields`, `list_xaction_statuses` |
-| Transaction participants | `list_xaction_participants`, `get_xaction_participant`, `list_xaction_participant_roles` |
-| Transaction notes | `list_xaction_activities`, `get_xaction_activity` |
-| Transaction dates | `search_xaction_dates`, `list_xaction_dates`, `get_xaction_date`, `list_date_folders`, `list_date_calculators` |
-| Transaction documents | `list_xaction_attachments`, `get_xaction_attachment`, `list_attachment_folders` |
-| Transaction emails | `list_xaction_emails`, `get_email` |
-| Contacts | `search_contacts`, `get_contact`, `list_contact_categories` |
-| Contact notes | `list_contact_notes`, `get_contact_note` |
-| Tasks | `search_tasks`, `get_task`, `list_task_folders` |
-| Custom fields | `list_field_definitions`, `get_field_definition_tree` |
-| Team | `whoami`, `list_team_members`, `get_team_member` |
-| Help center | `search_help_articles`, `get_help_article` |
-
-#### Added for Read & Write and Full Access keys
-
-| Area | Tools |
-|---|---|
-| Transactions | `create_xaction`, `update_xaction`, `update_xaction_field`, `update_xaction_field_by_code` |
-| Transaction participants | `create_xaction_participant`, `update_xaction_participant`, `update_xaction_participant_contact_info`, `link_xaction_participant_contact` |
-| Transaction notes | `create_xaction_note`, `update_xaction_note` |
-| Transaction dates | `create_xaction_date`, `update_xaction_date` |
-| Transaction documents | `create_xaction_attachment`, `update_xaction_attachment`, `move_xaction_attachment_file`, `unassign_xaction_attachment_file` |
-| Contacts | `create_contact`, `update_contact` |
-| Contact notes | `create_contact_note`, `update_contact_note` |
-| Tasks | `create_task`, `update_task` |
-
-Update tools take a `changes` object with only the fields to change; fields left out stay as they are, and `null` clears a field.
-
-The MCP server cannot delete anything, draft or send emails or messages, apply templates, or change team members, API keys or settings. We insist on those being done in AFrame.
+The MCP server cannot upload files, draft or send emails or messages, or change API keys, billing or team settings. To add a file, the assistant gives you a link to the document in AFrame so you can drop it in there.
 
 ### What to expect
 
 - **Links back to AFrame.** Records in tool results include a `webUrl`. After every create or update the assistant gives you that link so you can check the change in AFrame.
-- **Confirmation before sensitive changes.** The server tells the assistant to confirm with you before it changes an email address, a phone number, a transaction's status, or portal visibility, and before any request that needs more than 5 changes.
+- **Confirmation before sensitive changes.** The server tells the assistant to confirm with you before every deletion, before it applies a template, before it changes an email address, a phone number, a transaction's status, or portal visibility, and before any request that needs more than 5 changes.
 - **Records are data, not instructions.** Text in emails, notes and files is never treated as a command. If a record tries to instruct the assistant, it tells you instead of acting on it.
 - **Shared rate limits.** MCP calls count toward your team's Public API rate limits, together with your other integrations (such as Zapier). Each team member can also make only a limited number of changes per minute and per hour through MCP, which stops an assistant stuck in a loop. When a limit is reached the tool says how long to wait.
 - **Focused questions work best.** Questions that would need one call per transaction or per contact across your whole database, such as every task on every open transaction, are not supported yet. The assistant will offer a narrower question instead, such as one transaction or a filtered search.
