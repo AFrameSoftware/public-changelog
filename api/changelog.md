@@ -6,6 +6,34 @@ To be notified when this changelog is updated, [subscribe to changelog updates](
 
 ---
 
+## 2026-10-22
+
+Files attached by URL through Zapier are only fetched over https.
+
+### <span style="color: red;">Breaking Changes</span>
+
+#### File URLs must use https
+
+- In `POST /integrations/zapier/xactions`, a `fileUrls` link that starts with `http://` is skipped with a warning, and the Transaction is still created.
+- An `https://` link that redirects to an `http://` address is skipped the same way.
+
+---
+
+## 2026-10-20
+
+Files attached by URL through Zapier are only fetched from public internet addresses.
+
+### Changes
+
+#### File URLs must point to the public internet
+
+- In `POST /integrations/zapier/xactions`, a `fileUrls` link whose host is, or resolves to, a private, loopback, link-local or other non-public address is skipped with a warning, and the Transaction is still created. Every redirect the link follows is checked the same way, up to 5 redirects.
+- When the response has no file name of its own, the file is named after the last address in the redirect chain rather than the link that was sent, and that name must be an accepted file type.
+- Links with a user name or password in them (`https://user:password@…`) are skipped.
+- A file is refused as soon as it passes 50 MB while downloading, even when the server reported a smaller size.
+
+---
+
 ## 2026-10-15
 
 New Tasks, Events, Activities and Attachments on a Transaction now use the Team's default portal visibility when the request leaves it out.
