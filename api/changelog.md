@@ -6,6 +6,52 @@ To be notified when this changelog is updated, [subscribe to changelog updates](
 
 ---
 
+## 2026-10-26
+
+Email drafts can be saved on a Transaction or Contact, one email can be read with its body as plain text, and Contact license numbers can be longer.
+
+### Changes
+
+#### Longer Contact license numbers
+
+- `brokerNum` and `licenseNum` on Contacts now accept up to 50 characters, up from 20. This applies to `POST /contacts`, `PATCH /contacts/{contactId}` and `POST /integrations/zapier/contacts`.
+
+### <span style="color: green;">New Endpoints</span>
+
+#### `POST /email-queues/drafts` — Create an Email Draft
+
+Saves an email draft for the user to review and send from the record's Emails tab in AFrame. It never sends the email. Requires an API key with Read & Write or Full Access.
+
+- Pass `xactionId` or `contactId`, not both. Or pass only `taskId`, and the draft is saved on the Task's Transaction, or else its Contact. A `taskId` passed with a record must be on that same record.
+- The draft is saved from the authenticated user's default email account with their default signature. Returns `422` when the user has no email account connected.
+- `body` is HTML without a signature, at most 65,535 characters. Scripts and other unsafe markup are removed.
+- `xactionAttachmentIds` must be documents on the email's Transaction and `contactFileIds` files on the email's Contact; a file on another record returns `422`. IDs that are not found, and documents with no file, are skipped.
+
+**Request:** `APIEmailDraftCreateDto`
+- `xactionId` *(integer)*, `contactId` *(integer)*, `taskId` *(integer)*
+- `to`, `cc`, `bcc` *(string[])* — email addresses without display names
+- `subject` *(string)* — at most 255 characters
+- `body` *(string)* — HTML
+- `xactionAttachmentIds`, `contactFileIds` *(integer[])*
+- `scheduledDateTime` *(date-time)* — when the user would like it sent, kept with the draft
+
+**Payload:** `APIEmailQueueDto` of the saved draft (`201`), with `emailQueueState` `DRAFT`.
+
+#### `GET /email-queues/{emailQueueId}` — Get an Email Queue
+
+Returns one queued, sent or received email.
+
+**Payload:** `APIEmailQueueDetailDto`
+- `emailQueueId` *(integer)*, `xactionId` *(integer)*, `contactId` *(integer)*, `taskId` *(integer)*
+- `emailQueueState` *(enum)* — `DRAFT`, `QUEUED`, `SENDING`, `SENT`, `RECEIVED`, `SUPPRESSED`, `SKIPPED`, `FAILED`
+- `emailTransportDirection` *(enum)* — `SEND`, `RECEIVE`
+- `scheduledSendDateTime` *(date-time)* — `null` for received emails; `emailTransportDateTime` *(date-time)* — when it was sent or received
+- `from` *(string)*, `to`, `cc`, `bcc` *(string[])*, `subject` *(string)*
+- `bodyText` *(string)* — body and signature as plain text
+- `emailFileAttachments` *(APIEmailFileAttachmentDto[])* — download each via `GET /files/email-queue-attachments/{emailQueueAttachmentId}`
+
+---
+
 ## 2026-10-22
 
 Files attached by URL through Zapier are only fetched over https.
