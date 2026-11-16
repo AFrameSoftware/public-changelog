@@ -6,6 +6,54 @@ To be notified when this changelog is updated, [subscribe to changelog updates](
 
 ---
 
+## 2026-11-14
+
+Files can be up to 25 MB everywhere in the API.
+
+### Changes
+
+#### 25 MB per file
+
+- Multipart uploads (`POST /xaction-attachments/file`, `PATCH /xaction-attachments/{xactionAttachmentId}/file` and the other file endpoints) accept files up to 25 MB, up from 20 MB, and requests up to 30 MB, up from 25 MB. A larger upload still returns `413`.
+- File upload links accept files up to 25 MB.
+- In `POST /integrations/zapier/xactions`, a `fileUrls` file is refused once it passes 25 MB while downloading, down from 50 MB. The Transaction is still created, with a warning for the skipped file.
+
+---
+
+## 2026-11-09
+
+Templates, template entries, custom fields and participant roles return the team's AI Intake instructions, and an Event's date formula may be saved in AFrame without a reference date.
+
+### Changes
+
+#### New `intakeInstructions` field
+
+- `GET /task-templates`, `GET /event-templates`, `GET /attachment-templates` and `GET /participant-templates` return a nullable `intakeInstructions` string on each template, at most 500 characters.
+- `GET /event-templates/{eventTemplateId}/event-template-entries` and `GET /attachment-templates/{attachmentTemplateId}/attachment-template-entries` return it on each entry.
+- `GET /fields` and `GET /fields/tree` return it on each custom field.
+- `GET /xaction-participant-roles` returns it on each participant role, as does the `xactionParticipantRole` of each entry from `GET /participant-templates/{participantTemplateId}/participant-template-entries`.
+- The field is read-only through the API.
+
+#### Event date formulas without a reference date
+
+- An Event saved in AFrame can now have a date formula (`dateAdjustActive` is `true`) with no reference date. Such an Event has no date until a reference date is chosen, and its formula state is `INCOMPLETE`.
+- `POST /xactions/{xactionId}/events` still returns `422` when a date formula has no reference date.
+- `PATCH /xactions/{xactionId}/events/{eventId}` checks the reference date only when the patch changes `dateAdjustActive` or `dateAdjustReferenceCode`, so other fields of an Event with an incomplete formula can be patched.
+
+---
+
+## 2026-11-07
+
+A new Transaction's time zone now falls back to the Team's time zone.
+
+### Changes
+
+#### Time zone of a new Transaction
+
+- When `POST /xactions` or `POST /integrations/zapier/xactions` is sent without a valid `timeZone` and none can be found from the property address, the Transaction now takes the Team's time zone instead of the authenticated user's.
+
+---
+
 ## 2026-10-26
 
 Email drafts can be saved on a Transaction or Contact, one email can be read with its body as plain text, and Contact license numbers can be longer.
