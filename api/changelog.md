@@ -6,6 +6,20 @@ To be notified when this changelog is updated, [subscribe to changelog updates](
 
 ---
 
+## 2026-11-25
+
+A file uploaded to a placeholder document without `newFileName` can now be renamed with the team's file naming pattern.
+
+### Changes
+
+#### File names on placeholder documents
+
+- A team can set a file naming pattern in AFrame. It is blank by default, and while it is blank nothing changes.
+- When it is set, `POST /xaction-attachments/file` and `PATCH /xaction-attachments/{xactionAttachmentId}/file` sent without `newFileName` to a document with a `title` save the file under a name built from the pattern (for example the title, the property address and the upload date), keeping the uploaded file's extension. Read the stored name from `fileName` in the response.
+- A `newFileName` you send is still saved as given, and a document without a `title` still keeps the uploaded file's name.
+
+---
+
 ## 2026-11-14
 
 Files can be up to 25 MB everywhere in the API.
